@@ -1,0 +1,141 @@
+<template>
+  <div id="test">
+    <div class="group">分组1</div>
+    <div class="group">分组2</div>
+    <div class="line-chart" ref="mybar"></div>
+  </div>
+</template>
+
+<script>
+export default {
+  mounted() {
+    this.initChart()
+  },
+  data() {
+    return {
+      chartInstance: null
+    }
+  },
+  methods: {
+    initChart() {
+      const chartInstance = this.$echarts.init(this.$refs.mybar)
+      const data = {
+        xData: ['类别1', '类别2', '类别3', '类别4', '类别5', '类别6'],
+        yData: [100, 120, 140, 90, 90, 80],
+        colorArr: [
+          '#33ccff',
+          '#33ccff',
+          '#33ccff',
+          '#3366cc',
+          '#3366cc',
+          '#3366cc'
+        ]
+      }
+      const option = {
+        title: {
+          text: '基础柱状图分组',
+          top: 30,
+          left: 10,
+          textStyle: {
+            color: '#fff',
+            fontSize: 22
+          }
+        },
+        grid: [
+          {
+            top: 130,
+            bottom: 101
+          }
+        ],
+        xAxis: [
+          {
+            type: 'category',
+            data: data.xData,
+            axisLabel: {
+            },
+            axisLine: {
+              // 设置轴线
+              lineStyle: {
+                color: '#fff'
+              }
+            },
+            axisTick: {
+              show: false // 是否显示坐标轴刻度。
+            }
+            // zlevel: 2
+          }
+        ],
+        yAxis: [
+          {
+            name: '企业营收（万元）',
+            nameLocation: 'top',
+            nameTextStyle: {
+              color: '#fff',
+              padding: [0, 8, 170, 0],
+              fontSize: 15
+            },
+            type: 'value',
+            axisLabel: {
+              // 刻度标签文字的颜色
+              color: 'rgba(255, 255, 255, 45)'
+            },
+            axisLine: {
+              // 设置轴线
+              show: false
+            }
+          }
+
+        ],
+        series: [
+          {
+            barWidth: '30%', // 宽度
+            itemStyle: {
+              color: arg => {
+                // 设置柱的颜色
+                console.log(arg)
+                return data.colorArr[arg.dataIndex]
+              }
+            },
+            data: data.yData,
+            type: 'bar',
+            label: {
+              show: true,
+              position: 'top',
+              textStyle: {
+                color: '#fff',
+                fontSize: 16
+              },
+              padding: [0, 0, 10, 0]
+            }
+          }
+
+        ]
+      }
+      chartInstance.setOption(option)
+    }
+  }
+}
+</script>
+
+<style>
+#test {
+  position: relative;
+}
+.line-chart {
+  width: 800px;
+  height: 500px;
+  background: #000;
+}
+.group {
+  position: absolute;
+  color: aliceblue;
+  bottom: 41px;
+}
+
+.group:nth-child(1){
+  left: 220px;
+}
+.group:nth-child(2){
+  left: 540px;
+}
+</style>
