@@ -17,7 +17,7 @@ export default {
         [50, 320],
         [100, 250],
         [150, 300],
-        [300, 380]
+        [300, 400]
       ],
       barChart: {
         xAxisData: ["类别1", "类别2", "类别3", "类别4"],
@@ -39,7 +39,6 @@ export default {
           {
             type: "category",
             data: this.barChart.xAxisData,
-            inverse: true,
             // gridIndex: 0, // x 轴所在的 grid 的索引，默认位于第一个 grid。
             axisLabel: {
               color: "#fff" // 刻度标签文字的颜色
@@ -121,6 +120,7 @@ export default {
       this.barChart.dataList[1] = this.seriesData.map(item => {
         return item[1] - item[0];
       });
+      console.log(this.barChart.dataList);
     }
   }
 };

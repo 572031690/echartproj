@@ -17,7 +17,7 @@ export default {
         [50, 320],
         [100, 250],
         [150, 300],
-        [300, 380]
+        [300, 400]
       ],
       barChart: {
         xAxisData: ["类别1", "类别2", "类别3", "类别4"],
@@ -121,6 +121,7 @@ export default {
       this.barChart.dataList[1] = this.seriesData.map(item => {
         return item[1] - item[0];
       });
+      console.log(this.barChart.dataList);
     }
   }
 };

@@ -7,22 +7,22 @@
 <script>
 export default {
   mounted() {
-    this.getData()
-    this.initChart()
+    this.getData();
+    this.initChart();
   },
   data() {
     return {
       chartInstance: null,
       seriesData: [100, 120, 140, 90, 90, 80],
       barChart: {
-        xAxisData: ['类别1', '类别2', '类别3', '类别4', '类别5', '类别6'],
+        xAxisData: ["类别1", "类别2", "类别3", "类别4", "类别5", "类别6"],
         dataList: []
       }
-    }
+    };
   },
   methods: {
     initChart() {
-      const chartInstance = this.$echarts.init(this.$refs.mybar)
+      const chartInstance = this.$echarts.init(this.$refs.mybar);
       const option = {
         grid: [
           {
@@ -30,18 +30,18 @@ export default {
             bottom: 101
           }
         ],
-        xAxis: [
+        yAxis: [
           {
-            type: 'category',
+            type: "category",
             data: this.barChart.xAxisData,
             // gridIndex: 0, // x 轴所在的 grid 的索引，默认位于第一个 grid。
             axisLabel: {
-              color: '#fff' // 刻度标签文字的颜色
+              color: "#fff" // 刻度标签文字的颜色
             },
             axisLine: {
               // 设置轴线
               lineStyle: {
-                color: '#fff'
+                // color: "#fff"
               }
             },
             axisTick: {
@@ -49,97 +49,86 @@ export default {
             }
           }
         ],
-        yAxis: [
+        xAxis: [
           {
-            type: 'value',
+            type: "value",
             // gridIndex: 0,
             axisLabel: {
               // 刻度标签文字的颜色
-              color: '#fff'
+              color: "#fff"
             },
             splitLine: {
-              // y轴横线
+              // x轴横线
               lineStyle: {
-                color: 'rgba(255, 255, 255, 45)'
+                color: "rgba(255, 255, 255, 45)"
               }
             },
             axisLine: {
               // 设置轴线
-              show: false
+              show: true,
+              // 设置轴线
+              lineStyle: {
+                color: "#fff"
+              }
+            },
+            axisTick: {
+              show: false // 是否显示坐标轴刻度。
             }
           }
         ],
         series: [
           {
-            stack: '类1',
-            barWidth: '30%', // 宽度
+            stack: "类1",
+            barWidth: "30%", // 宽度
             itemStyle: {
-              color: '#3366cc'
+              color: "#3366cc"
             },
             data: this.barChart.dataList[1],
-            type: 'bar',
-            markLine: {
-              data: [
-                {
-                  type: 'max',
-                  name: '平均线'
-                }
-              ],
-              lineStyle: {
-                type: 'dashed',
-                color: '#fff'
-              },
-              symbol: ['none', 'none'], // 去除线段两端标记样式
-              label: {
-                show: true,
-                color: '#fff',
-                formatter: '平均值'
-              }
-            }
+            type: "bar"
           },
           {
             label: {
               show: true,
-              position: 'top',
+              position: "top",
               textStyle: {
-                color: '#fff',
+                color: "#fff",
                 fontSize: 16
               },
               formatter: arg => {
-                console.log(arg)
-                return this.seriesData[arg.dataIndex]
+                console.log(arg);
+                return this.seriesData[arg.dataIndex];
               }
             },
-            stack: '类1',
+            stack: "类1",
             xAxisIndex: 0,
-            barWidth: '30%', // 宽度
+            barWidth: "30%", // 宽度
             itemStyle: {
-              color: '#33ccff'
+              color: "#33ccff"
             },
             data: this.barChart.dataList[0],
-            type: 'bar'
+            type: "bar"
           }
         ]
-      }
-      chartInstance.setOption(option)
+      };
+      chartInstance.setOption(option);
     },
     getData() {
-      let sum = 0
-      this.seriesData.forEach(item => (sum += item))
-      const aver = sum / this.seriesData.length
+      let sum = 0;
+      this.seriesData.forEach(item => (sum += item));
+      const aver = sum / this.seriesData.length;
       // console.log(aver)
       this.barChart.dataList[0] = this.seriesData.map(item => {
-        if (item > aver) return item - aver
-        else return 0
-      })
+        if (item > aver) return item - aver;
+        else return 0;
+      });
       this.barChart.dataList[1] = this.seriesData.map(item => {
-        if (item > aver) return aver
-        else return item
-      })
-      console.log(this.barChart.dataList)
+        if (item > aver) return aver;
+        else return item;
+      });
+      console.log(this.barChart.dataList);
     }
   }
-}
+};
 </script>
 
 <style>

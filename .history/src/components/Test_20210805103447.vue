@@ -58,7 +58,7 @@ export default {
         ],
         xAxis: [
           {
-            interval: 50, // 强制设置坐标轴刻度间隔值
+            // interval: 50, // 强制设置坐标轴刻度间隔值
             // scale: true,
             type: "value",
             // gridIndex: 0,
@@ -121,6 +121,7 @@ export default {
       this.barChart.dataList[1] = this.seriesData.map(item => {
         return item[1] - item[0];
       });
+      console.log(this.barChart.dataList);
     }
   }
 };
