@@ -16,7 +16,7 @@ export default {
       var map = new AMap.Map('container', {
         zoom: 20, // 级别
         pitch: 60, // 地图俯仰角度，有效范围 0 度- 83 度
-        zoom: 5, // 5.8
+        zoom: 6.5, // 5.8
         showLabel: false, // 不显示地图文字标记
         zoomEnable: false, // 地图是否可缩放，默认值为true。此属性可被setStatus/getStatus 方法控制
         keyboardEnable: false, // 地图是否可通过键盘控制

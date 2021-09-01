@@ -16,7 +16,7 @@ export default {
       var map = new AMap.Map('container', {
         zoom: 20, // 级别
         pitch: 60, // 地图俯仰角度，有效范围 0 度- 83 度
-        zoom: 5, // 5.8
+        zoom: 5.8,
         showLabel: false, // 不显示地图文字标记
         zoomEnable: false, // 地图是否可缩放，默认值为true。此属性可被setStatus/getStatus 方法控制
         keyboardEnable: false, // 地图是否可通过键盘控制
@@ -25,71 +25,29 @@ export default {
         viewMode: '3D' // 使用3D视图
       })
 
-      const district = new AMap.DistrictSearch({
-        subdistrict: 0,
-        extensions: 'all',
-        level: 'city' // 城市
+      /* 绘制小地图的各个省份的分界线 */
+      AMapUI.loadUI(['geo/DistrictExplorer'], function(DistrictExplorer) {
+	    // 创建一个实例
+	    var districtExplorer = new DistrictExplorer({
+	        map: smap
+	    })
+	    var adcode = 100000
+	    districtExplorer.loadAreaNode(adcode, function(error, areaNode) {
+	        // 清除已有的绘制内容
+	        districtExplorer.clearFeaturePolygons()
+	        // 绘制子区域
+	        districtExplorer.renderSubFeatures(areaNode, function(feature, i) {
+	            return {
+	                bubble: true,
+	                strokeColor: '#B5B5B5', // 线颜色
+	                strokeOpacity: 1, // 线透明度
+	                strokeWeight: 0.6, // 线宽
+	                fillColor: '#EEEEEE', // 填充色
+	                fillOpacity: 0.35 // 填充透明度
+	            }
+	        })
+	    })
       })
-      district.search('深圳市', (status, result) => {
-        const [bounds, mask] = [result.districtList[0].boundaries, []]
-        if (bounds) {
-          for (let i = 0, l = bounds.length; i < l; i++) {
-            // 生成行政区划polygon
-            const polygon = new AMap.Polygon({
-              map: map,
-              strokeWeight: 1,
-              path: bounds[i],
-              fillOpacity: 0.25,
-              fillColor: '#09b8bf',
-              strokeColor: '#09b8bf'
-            })
-            mask.push(polygon)
-          }
-        }
-        map.add(mask)
-        map.setFitView(mask) // 视口自适应
-        AMap.plugin(['AMap.DistrictLayer'], function () {
-          const disProvince = new AMap.DistrictLayer.Province({
-            zIndex: 12,
-            depth: 2,
-            adcode: ['440306', '440307', '440308'], // 重点：添加要划分的子行政区码
-            styles: {
-              fill: function (properties) {
-                const adcode = properties.adcode
-                return getColorByAdcode(adcode)
-              },
-              'province-stroke': '#09b8bf',
-              'city-stroke': '#09b8bf',
-              'county-stroke': '#09b8bf' // 线条颜色
-            }
-          })
-          disProvince.setMap(map)
-        })
-        // 随机颜色
-        const getColorByAdcode = (adcode) => {
-          const colors = {}
-          if (!colors[adcode]) colors[adcode] = '#' + parseInt(0x1000000 * Math.random()).toString(16).padStart(6, '0')
-          return colors[adcode]
-        }
-        map.on('click', () => {
-          this.maps.infowindow.close()
-        })
-      })
-
-      // 创建 geoJSON 实例
-      var geoJson = new AMap.GeoJSON({
-        geoJSON: JSON.parse(geoJsonData), // GeoJSON对象
-        getPolygon: function(geojson, lnglats) { // 还可以自定义getMarker和getPolyline
-          return new AMap.Polygon({
-            path: lnglats,
-            fillOpacity: 0.8,
-            strokeColor: 'white',
-            fillColor: 'red'
-          })
-        }
-      })
-
-      map.add(geoJson)
 
       // 创建一个 Marker 实例：
       var marker = new AMap.Marker({
