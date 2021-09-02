@@ -24,7 +24,7 @@ const routes = [
   },
   {
     path: '/hubei',
-    component: HubeiGaode
+    component: ScreenPage
   },
   {
     path: '/sellerpage',

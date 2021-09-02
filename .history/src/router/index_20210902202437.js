@@ -23,8 +23,8 @@ const routes = [
     component: ScreenPage
   },
   {
-    path: '/hubei',
-    component: HubeiGaode
+    path: '/HubeiGaode',
+    component: ScreenPage
   },
   {
     path: '/sellerpage',

@@ -1,0 +1,172 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>朝阳区 Prism</title>
+    <style>
+        html,
+        body,
+        #container {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<!-- <script src="//webapi.amap.com/maps?v=1.4.15&key=您申请的key值&plugin=Map3D,AMap.DistrictSearch"></script> -->
+<script src="//webapi.amap.com/maps?v=1.4.15&key=992674179939d7e8de996eade9dd5bc2&plugin=Map3D,AMap.DistrictSearch"></script>
+<!-- <script src="https://webapi.amap.com/maps?v=1.4.15&key=fdb425952eca85ef36dbb245daeef0aa&plugin=Map3D,AMap.DistrictLayer,AMap.Scale,AMap.ToolBar"></script> -->
+
+<script>
+    var map = new AMap.Map('container', {
+        mapStyle:'amap://styles/6927c8a12becf56d0d5eb3fa83cf39b5',
+        viewMode: '3D',
+        pitch: 60,
+        zoom: 7.5,
+        center: [112.724882,31.061028],
+        showLabel: false, // 不显示地图文字标记
+        // zoomEnable: false, // 地图是否可缩放，默认值为true。此属性可被setStatus/getStatus 方法控制
+        keyboardEnable: false, // 地图是否可通过键盘控制
+        dragEnable: true, // 地图是否可通过鼠标拖拽平移
+    });
+    const nameCity=['武汉','黄石','十堰','宜昌','襄阳','鄂州','荆门','孝感','荆州','黄冈','咸宁','随州','恩施土家族苗族自治州','仙桃','潜江','天门','神农架林区']
+    // 设置光照
+    map.AmbientLight = new AMap.Lights.AmbientLight([1, 1, 1], 0.5);
+    map.DirectionLight = new AMap.Lights.DirectionLight([0, 0, 1], [1, 1, 1], 1);
+
+    var object3Dlayer = new AMap.Object3DLayer();
+    map.add(object3Dlayer);
+
+    new AMap.DistrictSearch({
+        subdistrict: 0,   //返回下一级行政区
+        extensions: 'all',  //返回行政区边界坐标组等具体信息
+        level: 'city'  //查询行政级别为 市
+
+    }).search('湖北省', function (status, result) {
+        var bounds = result.districtList[0].boundaries;
+        var height = 60000;
+        var color = '#87bdfcff'; // rgba #87bdfccc
+        var prism = new AMap.Object3D.Prism({
+            path: bounds,
+            height: height,
+            color: color
+        });
+
+        prism.transparent = true;
+        object3Dlayer.add(prism);
+
+        var text = new AMap.Text({
+            // text: result.districtList[0].name + '</br>(' + result.districtList[0].adcode + ')',
+            text: result.districtList[0].name,
+            verticalAlign: 'bottom',
+            position: [110.440308,32.404413],
+            height: 5000,
+            style: {
+                'background-color': 'transparent',
+                '-webkit-text-stroke': 'red',
+                '-webkit-text-stroke-width': '0.5px',
+                'text-align': 'center',
+                'border': 'none',
+                'color': 'white',
+                'font-size': '16px',
+                'font-weight': 600
+            }
+        });
+
+        text.setMap(map);
+    });
+
+    for(let i of nameCity) {
+      new AMap.DistrictSearch({
+        subdistrict: 0,   //返回下一级行政区
+        extensions: 'all',  //返回行政区边界坐标组等具体信息
+        level: 'city'  //查询行政级别为 市
+
+    }).search(i, function (status, result) {
+
+        // *******省份柱的绘制 ***********
+        // var bounds = result.districtList[0].boundaries;
+        // var height = 61000;
+        // var color = '#87bdfc'; // rgba #87bdfc
+        // var prism = new AMap.Object3D.Prism({
+        //     path: bounds,
+        //     height: height,
+        //     color: color
+        // });
+
+        // prism.transparent = true;
+        // object3Dlayer.add(prism);
+
+        // *******线的绘制 ***********
+        // var bounds = result.districtList[0].boundaries;
+        // rgba
+        // var color = '#0055ff';
+        // for (var i = 0; i < bounds.length; i += 1) {
+        //     var line = new AMap.Object3D.ThinLine({
+        //         path: bounds[i],
+        //         height:61000,
+        //         color: color
+        //     });
+        //     object3Dlayer.add(line)
+        // }
+
+        // *******立体墙的绘制******
+        var bounds = result.districtList[0].boundaries;
+        var height = 70000;
+        var color = '#0088ffff';//rgba
+        var wall = new AMap.Object3D.Wall({
+            path: bounds,
+            height: height,
+            color: color
+        });
+        wall.backOrFront = 'both';
+        wall.transparent = true;
+        object3Dlayer.add(wall);
+    });
+    }
+
+    // 生成立体的圆柱体
+    var bounds = [
+      new AMap.LngLat(110.840308,32.404413),
+      new AMap.LngLat(110.940308,32.404413),
+      new AMap.LngLat(110.940308,32.504413),
+      new AMap.LngLat(110.840308,32.504413)
+    ];
+    var height = 700000;
+    var color = '#0088ff87';//rgba
+    var prism1 = new AMap.Object3D.Prism({
+      path:bounds,
+      height:height,
+      color:color
+    });
+    object3Dlayer.add(prism1);//添加
+
+    // 生成顶部的数字
+    var text = new AMap.Text({
+            // text: result.districtList[0].name + '</br>(' + result.districtList[0].adcode + ')',
+            text: '5400家',
+            verticalAlign: 'bottom',
+            position: [110.890308,32.404413],
+            height: 720000,
+            style: {
+                'background-color': 'transparent',
+                // '-webkit-text-stroke': 'red',
+                '-webkit-text-stroke-width': '0.5px',
+                'text-align': 'center',
+                'border': 'none',
+                'color': 'white',
+                'font-size': '16px',
+                'font-weight': 600
+            }
+        });
+
+        text.setMap(map);
+
+</script>
+</body>
+</html>

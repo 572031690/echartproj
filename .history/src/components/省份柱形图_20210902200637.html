@@ -18,16 +18,11 @@
 </head>
 <body>
 <div id="container"></div>
-<div click="">返回</div>
 <!-- <script src="//webapi.amap.com/maps?v=1.4.15&key=您申请的key值&plugin=Map3D,AMap.DistrictSearch"></script> -->
 <script src="//webapi.amap.com/maps?v=1.4.15&key=992674179939d7e8de996eade9dd5bc2&plugin=Map3D,AMap.DistrictSearch"></script>
 <!-- <script src="https://webapi.amap.com/maps?v=1.4.15&key=fdb425952eca85ef36dbb245daeef0aa&plugin=Map3D,AMap.DistrictLayer,AMap.Scale,AMap.ToolBar"></script> -->
 
 <script>
-
-    var hubeiCode = '420000'
-    var cityCode = ''
-
     var map = new AMap.Map('container', {
         mapStyle:'amap://styles/6927c8a12becf56d0d5eb3fa83cf39b5',
         viewMode: '3D',
@@ -40,6 +35,8 @@
         dragEnable: true, // 地图是否可通过鼠标拖拽平移
         showIndoorMap: false, // 关闭室内地图显示
     });
+    const nameCity=['武汉','黄石','十堰','宜昌','襄阳','鄂州','荆门','孝感','荆州','黄冈','咸宁','随州','恩施土家族苗族自治州','仙桃','潜江','天门','神农架林区']
+
     // 限制显示和拖拽的区域
     var bounds = map.getBounds();
     map.setLimitBounds(bounds);
@@ -56,44 +53,45 @@
         extensions: 'all',  //返回行政区边界坐标组等具体信息
         level: 'city'  //查询行政级别为 市
 
-      }).search(adcode,function(status, result) {
-        const  districtList = result.districtList[0].districtList
-        for(let i of districtList) {
-          console.log(i.adcode,'ii');
-          new AMap.DistrictSearch({
-              subdistrict: 0,   //返回下一级行政区
-              extensions: 'all',  //返回行政区边界坐标组等具体信息
-              level: 'city'  //查询行政级别为 市
+    }).search(adcode,function(status, result) {
+      console.log(result.districtList[0].districtList,'湖北省');
+      const  districtList = result.districtList[0].districtList
+      for(let i of districtList) {
+        console.log(i.adcode,'ii');
+        new AMap.DistrictSearch({
+            subdistrict: 0,   //返回下一级行政区
+            extensions: 'all',  //返回行政区边界坐标组等具体信息
+            level: 'city'  //查询行政级别为 市
 
-          }).search(i.adcode,function(status, result) {
-            var bounds = result.districtList[0].boundaries;
-            var height = 60000;
-            var color = '#87bdfcff'; // rgba #87bdfccc
-            var prism = new AMap.Object3D.Prism({
-                path: bounds,
-                height: height,
-                color: color
-            });
-            prism.adcodeYS=i.adcode
-            prism.transparent = true;
-            object3Dlayer.add(prism);
+        }).search(i.adcode,function(status, result) {
+          var bounds = result.districtList[0].boundaries;
+          var height = 60000;
+          var color = '#87bdfcff'; // rgba #87bdfccc
+          var prism = new AMap.Object3D.Prism({
+              path: bounds,
+              height: height,
+              color: color
+          });
+          prism.adcodeYS=i.adcode
+          prism.transparent = true;
+          object3Dlayer.add(prism);
 
-                // *******立体墙的绘制******
-            var bounds = result.districtList[0].boundaries;
+              // *******立体墙的绘制******
+          var bounds = result.districtList[0].boundaries;
 
-            var height = 70000;
-            var color = '#0088ffff';//rgba
-            var wall = new AMap.Object3D.Wall({
-                path: bounds,
-                height: height,
-                color: color
-            });
-            wall.backOrFront = 'both';
-            wall.transparent = true;
-            object3Dlayer.add(wall);
-            })
-        }
-      })
+          var height = 70000;
+          var color = '#0088ffff';//rgba
+          var wall = new AMap.Object3D.Wall({
+              path: bounds,
+              height: height,
+              color: color
+          });
+          wall.backOrFront = 'both';
+          wall.transparent = true;
+          object3Dlayer.add(wall);
+          })
+      }
+    })
     }
     getCity('420000')
 
@@ -140,10 +138,9 @@
         var obj = map.getObject3DByContainerPos(px, [object3Dlayer], false) || {};
         // 选中的 object3D 对象，这里为当前 Mesh
         var object = obj.object;
-        object3Dlayer.clear()
-        cityCode = object.adcodeYS
-        getCity(object.adcodeYS)
+        console.log(object.adcodeYS);
 
+        }
   });
 
 </script>
