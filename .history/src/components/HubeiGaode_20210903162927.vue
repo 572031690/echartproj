@@ -1,0 +1,293 @@
+<template>
+  <div id="gaodeMap">
+    <div id="container"></div>
+    <div  class="topTips">
+      <div v-for="(item, index) in mapList" :key="index"   @click="goBackCIty(item,index)" :class="['topItem',{'current':currentIndex === index }]">{{item.name}}</div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  data() {
+    return {
+      hubeiCode: { name: '湖北省', code: '420000', center: { R: 112.724882, Q: 31.061028 } },
+      currentIndex: 0,
+      map: '',
+      object3Dlayer: '',
+      mapList: [],
+      mapText: '',
+      reload: false
+    }
+  },
+  created() {
+    // key是申请的值
+    var url =
+      'https://webapi.amap.com/maps?v=1.4.15&key=992674179939d7e8de996eade9dd5bc2&plugin=Map3D,AMap.DistrictSearch&callback=onLoad'
+    // 创建一个 script dom元素
+    // doc需要补全document
+    var jsapi = document.createElement('script')
+    // 设定script标签属性
+    jsapi.charset = 'utf-8'
+    jsapi.src = url
+    // 将API文件引入页面中,加载完毕以后会调用函数
+    document.head.appendChild(jsapi)
+  },
+  mounted() {
+    //   页面加载完,开始异步引入高德地图
+    // 创建了一个回调函数,高德地图加载完毕会调用
+
+    this.getMap()
+  },
+  methods: {
+    // onLoad地图
+    getMap() {
+      var _this = this
+      window.onLoad = function() {
+        _this.initMap()
+
+        // 生成顶部的数字
+        var text = new AMap.Text({
+        // text: result.districtList[0].name + '</br>(' + result.districtList[0].adcode + ')',
+          text: '5400家',
+          verticalAlign: 'bottom',
+          position: [110.890308, 32.404413],
+          height: 720000,
+          style: {
+            'background-color': 'transparent',
+            // '-webkit-text-stroke': 'red',
+            '-webkit-text-stroke-width': '0.5px',
+            'text-align': 'center',
+            border: 'none',
+            color: 'white',
+            'font-size': '16px',
+            'font-weight': 600
+          }
+        })
+        text.setMap(_this.map)
+
+        _this.getMouse()
+      }
+    },
+    //  初始化 AMap
+    initMap() {
+      this.map = new AMap.Map('container', {
+        mapStyle: 'amap://styles/6927c8a12becf56d0d5eb3fa83cf39b5',
+        viewMode: '3D',
+        pitch: 60,
+        zoom: 7.4,
+        center: [112.724882, 31.061028],
+        showLabel: false, // 不显示地图文字标记
+        // zoomEnable: false, // 地图是否可缩放，默认值为true。此属性可被setStatus/getStatus 方法控制
+        keyboardEnable: false, // 地图是否可通过键盘控制
+        dragEnable: true, // 地图是否可通过鼠标拖拽平移
+        showIndoorMap: false // 关闭室内地图显示
+      })
+      this.map.on('complete', function() {
+        // 地图图块加载完成后触发
+        console.log('object')
+
+        // this.reload = false
+      })
+      console.log(this.map)
+      // 限制显示和拖拽的区域
+      var bounds = this.map.getBounds()
+      this.map.setLimitBounds(bounds)
+      // 设置光照
+      this.map.AmbientLight = new AMap.Lights.AmbientLight([1, 1, 1], 0.5)
+      this.map.DirectionLight = new AMap.Lights.DirectionLight([0, 0, 1], [1, 1, 1], 1)
+
+      this.object3Dlayer = new AMap.Object3DLayer()
+      this.map.add(this.object3Dlayer)
+      this.mapList = [this.hubeiCode]
+      this.getCity(this.hubeiCode.code)
+    },
+    //   DistrictSearch方法search数据
+    getCity(adcode) {
+      this.reload = true
+      this.map.setZoom(7.5 + this.currentIndex) // 设置地图层级 7.4 8.4 9.4
+      this.object3Dlayer.clear()
+      var _this = this
+      new AMap.DistrictSearch({
+        subdistrict: 1, // 返回下一级行政区
+        extensions: 'all', // 返回行政区边界坐标组等具体信息
+        level: 'city' // 查询行政级别为 市
+      }).search(adcode, function(status, result) {
+        // console.log(result.districtList[0], 'districtListdistrictList')
+        const districtListFather = result.districtList[0]
+        if (_this.currentIndex === 2) { _this.getText(districtListFather.center, districtListFather.name) }
+        for (const i of districtListFather.districtList) {
+          new AMap.DistrictSearch({
+            subdistrict: 0, // 返回下一级行政区
+            extensions: 'all', // 返回行政区边界坐标组等具体信息
+            level: 'city' // 查询行政级别为 市
+
+          }).search(i.adcode, function(status, result) {
+            _this.getPrismCity(result.districtList[0].boundaries, i)
+            _this.getPrismWall(result.districtList[0].boundaries, i)
+
+            if (_this.currentIndex === 0) { _this.getPrims(i.center, i.adcode) }
+            if (_this.currentIndex !== 2) { _this.getText(i.center, i.name) }
+          })
+        }
+      })
+    },
+    // 构建区域块
+    getPrismCity(e, i) {
+      const bounds = e
+      const height = 60000
+      const color = '#87bdfcff' // rgba #87bdfccc
+      var prism = new AMap.Object3D.Prism({
+        path: bounds,
+        height: height,
+        color: color
+      })
+      prism.name = i.name
+      prism.center = i.center
+      prism.adcodeYS = i.adcode
+      prism.transparent = true
+      this.object3Dlayer.add(prism)
+    },
+    // 构建区域分界线墙
+    getPrismWall(e, i) {
+      // *******立体墙的绘制******
+      const bounds = e
+      const height = 70000
+      const color = '#0088ffff'// rgba
+      var wall = new AMap.Object3D.Wall({
+        path: bounds,
+        height: height,
+        color: color
+      })
+      wall.backOrFront = 'both'
+      wall.transparent = true
+      this.object3Dlayer.add(wall)
+    },
+    // 构建文本内容
+    getText(e, name) {
+      var _this = this
+      // 生成顶部的数字
+      _this.mapText = new AMap.Text({
+        // text: result.districtList[0].name + '</br>(' + result.districtList[0].adcode + ')',
+        text: name,
+        verticalAlign: 'bottom',
+        position: name === '黄冈市' ? [e.R + 0.8, e.Q] : [e.R, e.Q],
+        height: 60000,
+        style: {
+          'background-color': 'transparent',
+          // '-webkit-text-stroke': 'red',
+          // '-webkit-text-stroke-width': '0.5px',
+          'text-align': 'center',
+          border: 'none',
+          color: 'black',
+          'font-size': '10px'
+          // 'font-weight': 600
+        }
+      })
+      _this.mapText.setMap(_this.map)
+      _this.$nextTick(() => {
+        _this.reload = false
+      })
+
+      // _this.mapText.setMap(null)
+    },
+    // 构建柱形
+    getPrims(value, adcode) {
+      // Prism方法生成立体的圆柱体
+      var bounds = [
+        new AMap.LngLat(value.R, value.Q),
+        new AMap.LngLat(value.R + 0.1, value.Q),
+        new AMap.LngLat(value.R + 0.1, value.Q - 0.1),
+        new AMap.LngLat(value.R, value.Q - 0.1)
+      ]
+      if (adcode === '421100') {
+        bounds = [
+          new AMap.LngLat(value.R + 0.8, value.Q),
+          new AMap.LngLat(value.R + 0.9, value.Q),
+          new AMap.LngLat(value.R + 0.9, value.Q - 0.1),
+          new AMap.LngLat(value.R + 0.8, value.Q - 0.1)
+        ]
+      }
+      var height = 700000
+      var color = '#eeeeee60'// rgba  #0088ff60
+      var prism = new AMap.Object3D.Prism({
+        path: bounds,
+        height: height,
+        color: color
+      })
+      this.object3Dlayer.add(prism)// 添加
+    },
+    // 绑定鼠标事件
+    getMouse() {
+      // 鼠标拾取事件
+      var _this = this
+      this.map.on('click', function (ev) { // mousemove 鼠标移动 mouseover 鼠标覆盖 mouseout 鼠标离开
+        if (_this.currentIndex === 2 || _this.reload) return
+        var pixel = ev.pixel
+        var px = new AMap.Pixel(pixel.x, pixel.y)
+        var obj = _this.map.getObject3DByContainerPos(px, [_this.object3Dlayer], false) || {}
+        // 选中的 object3D 对象，这里为当前 Mesh
+        console.log(obj.object)
+        if (obj.object.name) {
+          _this.reload = true
+          _this.map.clearMap()
+          var object = obj.object
+          if (_this.mapList.length < 3) {
+            _this.currentIndex++
+            _this.mapList.push({ name: object.name, code: object.adcodeYS, center: object.center })
+          }
+          const centerData = obj.object.center || 0
+          if (centerData) _this.map.setCenter([centerData.R, centerData.Q]) // 设置地图中心点
+
+          _this.getCity(object.adcodeYS)
+        }
+      })
+
+      // _this.map.off('click')
+    },
+    // 导航栏点击事件
+    goBackCIty(e, id) {
+      if (this.currentIndex === id) return
+      this.currentIndex = id
+      if (!id) {
+        this.mapList = [this.hubeiCode]
+      } else {
+        this.mapList.splice(id + 1, 1)
+      }
+      this.map.clearMap()
+      this.map.setCenter([e.center.R, e.center.Q]) // 设置地图中心点
+      this.getCity(e.code)
+    }
+
+  }
+}
+</script>
+
+<style>
+  #gaodeMap {
+    width: 100%;
+      height: 100vh;
+  }
+  #container {
+    width: 100%;
+    height: 100%;
+  }
+  .topTips {
+    position: absolute;
+    right:15% ;
+    top: 15%;
+    width: 15%;
+    background-color: rgb(48, 133, 230);
+  }
+  .topItem {
+    width: 100%;
+    height: 80px;
+    text-align: center;
+    line-height: 80px;
+    background-color: rgb(183, 167, 196);
+  }
+  .current {
+    background-color: rgb(68, 57, 77);
+
+  }
+</style>

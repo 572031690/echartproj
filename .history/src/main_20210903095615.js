@@ -9,6 +9,14 @@ import './assets/css/global.less'
 import axios from 'axios'
 import SocketService from './utils/socket_service'
 
+// import VueAMap from 'vue-amap'
+// Vue.use(VueAMap)
+// // 初始化vue-amap
+// VueAMap.initAMapApiLoader({
+//   key: '992674179939d7e8de996eade9dd5bc2',
+//   plugin: ['AMap.Autocomplete', 'AMap.PlaceSearch', 'AMap.Scale', 'AMap.OverView', 'AMap.ToolBar', 'AMap.MapType', 'AMap.PolyEditor', 'AMap.CircleEditor']
+// })
+
 // 调用socket **********
 // import SocketService from '@/utils/socket_service'
 // 对服务端进行webSocket连接 *********
