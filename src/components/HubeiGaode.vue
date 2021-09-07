@@ -8,6 +8,7 @@
 </template>
 
 <script>
+import Vue from "vue";
 export default {
   data() {
     return {
@@ -16,7 +17,8 @@ export default {
       map: '',
       object3Dlayer: '',
       mapList: [],
-      mapText: ''
+      mapText: '',
+      infoWindow: ''
     }
   },
   created() {
@@ -94,14 +96,16 @@ export default {
       this.map.add(this.object3Dlayer)
       this.mapList = [this.hubeiCode]
       this.getCity(this.hubeiCode.code)
+
+      
     },
     onMouse() {
       this.map.on('click', this.getMouse)
     },
     //   DistrictSearch方法search数据
     getCity(adcode) {
-      this.map.off('click', this.getMouse)
-      this.reload = true
+      // this.map.off('click', this.getMouse)
+      // this.reload = true
       this.map.setZoom(7.5 + this.currentIndex) // 设置地图层级 7.4 8.4 9.4
       this.object3Dlayer.clear()
       this.map.clearMap()
@@ -126,12 +130,18 @@ export default {
 
             if (_this.currentIndex === 0) { _this.getPrims(i.center, i.adcode) }
             if (_this.currentIndex !== 2) { _this.getText(i.center, i.name) }
-            if (_this.currentIndex !== 2) {
-              setTimeout(() => {
-                _this.onMouse()
-                _this.reload = false
-              }, 1000)
+            if(_this.currentIndex === 1) {
+                        // 创建 infoWindow 实例	
+              _this.infoWindow = new AMap.InfoWindow({offset: new AMap.Pixel(0, -30)});
+              //鼠标点击marker弹出自定义的信息窗体
+              _this.getmarker(i.center, i.adcode,i.name)
             }
+            // if (_this.currentIndex !== 2) {
+            //   setTimeout(() => {
+            //     _this.onMouse()
+            //     _this.reload = false
+            //   }, 1000)
+            // }
           })
         }
       })
@@ -219,6 +229,52 @@ export default {
       })
       this.object3Dlayer.add(prism)// 添加
     },
+    // 构建点图
+    getmarker(value, adcode, name) {
+      var marker = new AMap.Marker({
+          position: new AMap.LngLat(value.R, value.Q),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+          offset: new AMap.Pixel(0, -50) // 向上偏移
+          // content: content.join("<br>"),  //传入 dom 对象，或者 html 字符串,
+          // title: adcode
+      });
+      // 将创建的点标记添加到已有的地图实例：
+      marker.code=adcode
+      this.map.add(marker);
+      
+      marker.content = `<div class="center" v-on:click="getDetail()">
+                          ${name}
+                        </div>`;
+      marker.on('click', this.markerClick);
+      // marker.emit('click', {target: marker});
+     
+    },
+    markerClick(e) {
+      // 提示：这里必须要保存一下this,在访问extend外部的内容时候需要：如 that.testOut
+      let that = this;
+      let InfoContent = Vue.extend({
+        template: e.target.content,
+        data() {
+          return {
+            // testIner: "这是里面的内容",
+          };
+        },
+        methods: {
+          getDetail() {
+            console.log(e.target.code);
+            // console.log(that.testIner);
+          }
+        },
+      });
+      let component = new InfoContent().$mount();
+      this.infoWindow.setContent(component.$el);
+      // this.infoWindow.open(this.map, [117.00923, 36.675807]);
+      // this.infoWindow.setContent(e.target.content);
+      this.infoWindow.open(this.map, e.target.getPosition());
+
+    },
+    getDetail() {
+      console.log('object:');
+    },
     // 鼠标事件
     getMouse(ev) {
       // var this = this
@@ -242,7 +298,7 @@ export default {
     },
     // 导航栏点击事件
     goBackCIty(e, id) {
-      if (this.currentIndex === id || this.reload) return
+      if (this.currentIndex === id) return
       this.currentIndex = id
       if (!id) {
         this.mapList = [this.hubeiCode]
@@ -283,6 +339,29 @@ export default {
   }
   .current {
     background-color: rgb(68, 57, 77);
+
+  }
+
+   .amap-info-content {
+     padding: 0px;
+     width: 218.5px;
+     height: 46.5px;
+     border-radius: 2px;
+     background-color: rgba(43, 78, 120, 1);
+     box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.5);
+     border: 1px solid rgba(29, 32, 49, 1);
+  }
+  .amap-info-sharp {
+    border-top: 8px solid rgba(43, 78, 120, 1) !important;
+  }
+  .center {
+    width: 140px;
+    height: 46.5px;
+    line-height: 46.5px;
+    color: rgba(255, 255, 255, 100);
+    padding-left: 25px;
+    font-size: 14px;
+    cursor: pointer;
 
   }
 </style>

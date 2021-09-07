@@ -395,7 +395,7 @@ export default {
   methods: {
     handleSelect(currentType) {
       this.choiceType = currentType
-      this.updataCharts()
+      this.updateChart()
       this.showChoice = false
     },
     initChart() {
