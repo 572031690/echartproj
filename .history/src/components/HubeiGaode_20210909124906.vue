@@ -18,8 +18,7 @@ export default {
       object3Dlayer: '',
       mapList: [],
       mapText: '',
-      infoWindow: '',
-      markerList: []
+      infoWindow: ''
     }
   },
   created() {
@@ -45,18 +44,39 @@ export default {
     // onLoad地图
     getMap() {
       var _this = this
-      window.onLoad = function() { // 必须要放在window.onLoad内初始化
+      window.onLoad = function() {
         _this.initMap()
+
+        // // 生成顶部的数字
+        // var text = new AMap.Text({
+        // // text: result.districtList[0].name + '</br>(' + result.districtList[0].adcode + ')',
+        //   text: '5400家',
+        //   verticalAlign: 'bottom',
+        //   position: [110.890308, 32.404413],
+        //   height: 720000,
+        //   style: {
+        //     'background-color': 'transparent',
+        //     // '-webkit-text-stroke': 'red',
+        //     '-webkit-text-stroke-width': '0.5px',
+        //     'text-align': 'center',
+        //     border: 'none',
+        //     color: 'white',
+        //     'font-size': '16px',
+        //     'font-weight': 600
+        //   }
+        // })
+
+        // text.setMap(_this.map)
       }
     },
 
     //  初始化 AMap
     initMap() {
       this.map = new AMap.Map('container', {
-        mapStyle: 'amap://styles/6927c8a12becf56d0d5eb3fa83cf39b5', // 绑定地图样式风格
+        mapStyle: 'amap://styles/6927c8a12becf56d0d5eb3fa83cf39b5',
         viewMode: '3D',
         pitch: 60,
-        zoom: 7.4, // 缩放大小
+        zoom: 7.4,
         center: [112.724882, 31.061028],
         showLabel: false, // 不显示地图文字标记
         // zoomEnable: false, // 地图是否可缩放，默认值为true。此属性可被setStatus/getStatus 方法控制
@@ -64,7 +84,7 @@ export default {
         dragEnable: true, // 地图是否可通过鼠标拖拽平移
         showIndoorMap: false // 关闭室内地图显示
       })
-      this.map.on('complete', this.onMouse) // 地图加载完毕调用
+      this.map.on('complete', this.onMouse)
       // 限制显示和拖拽的区域
       var bounds = this.map.getBounds()
       this.map.setLimitBounds(bounds)
@@ -85,9 +105,8 @@ export default {
       // this.map.off('click', this.getMouse)
       // this.reload = true
       this.map.setZoom(7.5 + this.currentIndex) // 设置地图层级 7.4 8.4 9.4
-      this.object3Dlayer.clear() // 清楚3D图
-      this.map.clearMap() // 清楚文字 marker等
-      this.markerList = []
+      this.object3Dlayer.clear()
+      this.map.clearMap()
       var _this = this
       new AMap.DistrictSearch({
         subdistrict: 1, // 返回下一级行政区
@@ -96,10 +115,10 @@ export default {
       }).search(adcode, function(status, result) {
         // console.log(result.districtList[0], 'districtListdistrictList')
         const districtListFather = result.districtList[0]
-        if (_this.currentIndex === 2) { _this.getText(districtListFather) }
+        if (_this.currentIndex === 2) { _this.getText(districtListFather.center, districtListFather.name) }
         for (const i of districtListFather.districtList) {
           new AMap.DistrictSearch({
-            subdistrict: 0, // 不返回下一级行政区
+            subdistrict: 0, // 返回下一级行政区
             extensions: 'all', // 返回行政区边界坐标组等具体信息
             level: 'city' // 查询行政级别为 市
 
@@ -107,11 +126,11 @@ export default {
             _this.getPrismCity(result.districtList[0].boundaries, i)
             _this.getPrismWall(result.districtList[0].boundaries, i)
 
-            if (_this.currentIndex === 0) { _this.getPrims(i) }
-            if (_this.currentIndex !== 2) { _this.getText(i) }
+            if (_this.currentIndex === 0) { _this.getPrims(i.center, i.adcode) }
+            if (_this.currentIndex !== 2) { _this.getText(i.center, i.name) }
             if (_this.currentIndex === 1) {
               // 创建 infoWindow 实例
-              _this.infoWindow = new AMap.InfoWindow({ offset: new AMap.Pixel(10, -50) })
+              _this.infoWindow = new AMap.InfoWindow({ offset: new AMap.Pixel(0, -60) })
               // 鼠标点击marker弹出自定义的信息窗体
               _this.getmarker(i.center, i.adcode, i.name)
             }
@@ -157,15 +176,15 @@ export default {
       this.object3Dlayer.add(wall)
     },
     // 构建文本内容
-    getText(e, height) {
+    getText(e, name) {
       var _this = this
-      // 生成顶部的文字
+      // 生成顶部的数字
       _this.mapText = new AMap.Text({
         // text: result.districtList[0].name + '</br>(' + result.districtList[0].adcode + ')',
-        text: e.name,
+        text: name,
         verticalAlign: 'bottom',
-        position: e.name === '黄冈市' ? [e.center.R + 0.8, e.center.Q] : [e.center.R, e.center.Q],
-        height: height || 50000,
+        position: name === '黄冈市' ? [e.R + 0.8, e.Q] : [e.R, e.Q],
+        height: 60000,
         style: {
           'background-color': 'transparent',
           // '-webkit-text-stroke': 'red',
@@ -183,20 +202,20 @@ export default {
       // })
     },
     // 构建柱形
-    getPrims(e) {
+    getPrims(value, adcode) {
       // Prism方法生成立体的圆柱体
       var bounds = [
-        new AMap.LngLat(e.center.R, e.center.Q),
-        new AMap.LngLat(e.center.R + 0.1, e.center.Q),
-        new AMap.LngLat(e.center.R + 0.1, e.center.Q - 0.1),
-        new AMap.LngLat(e.center.R, e.center.Q - 0.1)
+        new AMap.LngLat(value.R, value.Q),
+        new AMap.LngLat(value.R + 0.1, value.Q),
+        new AMap.LngLat(value.R + 0.1, value.Q - 0.1),
+        new AMap.LngLat(value.R, value.Q - 0.1)
       ]
-      if (e.adcode === '421100') {
+      if (adcode === '421100') {
         bounds = [
-          new AMap.LngLat(e.center.R + 0.8, e.center.Q),
-          new AMap.LngLat(e.center.R + 0.9, e.center.Q),
-          new AMap.LngLat(e.center.R + 0.9, e.center.Q - 0.1),
-          new AMap.LngLat(e.center.R + 0.8, e.center.Q - 0.1)
+          new AMap.LngLat(value.R + 0.8, value.Q),
+          new AMap.LngLat(value.R + 0.9, value.Q),
+          new AMap.LngLat(value.R + 0.9, value.Q - 0.1),
+          new AMap.LngLat(value.R + 0.8, value.Q - 0.1)
         ]
       }
       var height = 700000
@@ -207,38 +226,26 @@ export default {
         color: color
       })
       this.object3Dlayer.add(prism)// 添加
-      const dataValue = {
-        center: e.center,
-        name: height
-      }
-      this.getText(dataValue, height + 10000)
     },
     // 构建点图
     getmarker(value, adcode, name) {
       var marker = new AMap.Marker({
         position: new AMap.LngLat(value.R, value.Q), // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
-        offset: new AMap.Pixel(0, -50), // 向上偏移
-        icon: require('../assets/images/marker1.svg'),
+        offset: new AMap.Pixel(0, -50) // 向上偏移
         // content: content.join("<br>"),  //传入 dom 对象，或者 html 字符串,
-        title: adcode
+        // title: adcode
       })
       // 将创建的点标记添加到已有的地图实例：
       marker.code = adcode
       this.map.add(marker)
-      this.markerList.push(marker)
+
       marker.content = `<div class="center" v-on:click="getDetail()">
                           ${name}
                         </div>`
       marker.on('click', this.markerClick)
-      if (parseInt(marker.code) === 421081) { // 判断是不是石首市 如果是就打开窗口
-        const openData = {}
-        openData.target = marker
-        this.markerClick(openData)
-      }
+      // marker.emit('click', {target: marker});
     },
     markerClick(e) {
-      console.log(this.map)
-      this.markHighLight(e.target.code)
       // 提示：这里必须要保存一下this,在访问extend外部的内容时候需要：如 that.testOut
       const that = this
       const InfoContent = Vue.extend({
@@ -252,30 +259,15 @@ export default {
           getDetail() {
             console.log(e.target.code)
             // console.log(that.testIner);
-            that.getDetail()
           }
         }
       })
       const component = new InfoContent().$mount()
       this.infoWindow.setContent(component.$el)
       // this.infoWindow.open(this.map, [117.00923, 36.675807]);
+      // this.infoWindow.setContent(e.target.content);
       this.infoWindow.open(this.map, e.target.getPosition())
-      // this.map.clearInfoWindow(); // 关闭窗体
     },
-    // 散点高亮
-    markHighLight(code) {
-      this.markerList.forEach(marker => {
-        if (marker.code === code) {
-          marker.setIcon(require('../assets/images/marker2.svg'))
-          marker.setOffset(new AMap.Pixel(0, -50))
-          // this.createInfoWindow(marker)
-        } else {
-          marker.setIcon(require('../assets/images/marker1.svg'))
-          marker.setOffset(new AMap.Pixel(0, -50))
-        }
-      })
-    },
-    // 点击弹窗详情
     getDetail() {
       console.log('object:')
     },
@@ -287,7 +279,7 @@ export default {
       var px = new AMap.Pixel(pixel.x, pixel.y)
       var obj = this.map.getObject3DByContainerPos(px, [this.object3Dlayer], false) || {}
       // 选中的 object3D 对象，这里为当前 Mesh
-      // console.log(obj.object)
+      console.log(obj.object)
       if (!obj.object.name) return
       // this.map.off('click', this.getMouse)
       var object = obj.object
@@ -307,10 +299,9 @@ export default {
       if (!id) {
         this.mapList = [this.hubeiCode]
       } else {
-        this.mapList.splice(id + 1, 1) // 删除导航栏一个数据
+        this.mapList.splice(id + 1, 1)
       }
-      // this.map.clearMap()
-      this.markerList = []
+      this.map.clearMap()
       this.map.setCenter([e.center.R, e.center.Q]) // 设置地图中心点
       this.getCity(e.code)
     }

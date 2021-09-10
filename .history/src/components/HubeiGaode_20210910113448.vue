@@ -47,6 +47,27 @@ export default {
       var _this = this
       window.onLoad = function() { // 必须要放在window.onLoad内初始化
         _this.initMap()
+
+        // // 生成顶部的数字
+        // var text = new AMap.Text({
+        // // text: result.districtList[0].name + '</br>(' + result.districtList[0].adcode + ')',
+        //   text: '5400家',
+        //   verticalAlign: 'bottom',
+        //   position: [110.890308, 32.404413],
+        //   height: 720000,
+        //   style: {
+        //     'background-color': 'transparent',
+        //     // '-webkit-text-stroke': 'red',
+        //     '-webkit-text-stroke-width': '0.5px',
+        //     'text-align': 'center',
+        //     border: 'none',
+        //     color: 'white',
+        //     'font-size': '16px',
+        //     'font-weight': 600
+        //   }
+        // })
+
+        // text.setMap(_this.map)
       }
     },
 
@@ -230,14 +251,15 @@ export default {
                           ${name}
                         </div>`
       marker.on('click', this.markerClick)
-      if (parseInt(marker.code) === 421081) { // 判断是不是石首市 如果是就打开窗口
+      console.log(marker, 'markkkk')
+      if (marker.code === 421081) { // 判断是不是石首市 如果是就打开窗口
         const openData = {}
         openData.target = marker
         this.markerClick(openData)
       }
     },
     markerClick(e) {
-      console.log(this.map)
+      console.log(e)
       this.markHighLight(e.target.code)
       // 提示：这里必须要保存一下this,在访问extend外部的内容时候需要：如 that.testOut
       const that = this
@@ -259,8 +281,8 @@ export default {
       const component = new InfoContent().$mount()
       this.infoWindow.setContent(component.$el)
       // this.infoWindow.open(this.map, [117.00923, 36.675807]);
+      // this.infoWindow.setContent(e.target.content) // 打卡窗口
       this.infoWindow.open(this.map, e.target.getPosition())
-      // this.map.clearInfoWindow(); // 关闭窗体
     },
     // 散点高亮
     markHighLight(code) {

@@ -47,6 +47,27 @@ export default {
       var _this = this
       window.onLoad = function() { // 必须要放在window.onLoad内初始化
         _this.initMap()
+
+        // // 生成顶部的数字
+        // var text = new AMap.Text({
+        // // text: result.districtList[0].name + '</br>(' + result.districtList[0].adcode + ')',
+        //   text: '5400家',
+        //   verticalAlign: 'bottom',
+        //   position: [110.890308, 32.404413],
+        //   height: 720000,
+        //   style: {
+        //     'background-color': 'transparent',
+        //     // '-webkit-text-stroke': 'red',
+        //     '-webkit-text-stroke-width': '0.5px',
+        //     'text-align': 'center',
+        //     border: 'none',
+        //     color: 'white',
+        //     'font-size': '16px',
+        //     'font-weight': 600
+        //   }
+        // })
+
+        // text.setMap(_this.map)
       }
     },
 
@@ -59,7 +80,7 @@ export default {
         zoom: 7.4, // 缩放大小
         center: [112.724882, 31.061028],
         showLabel: false, // 不显示地图文字标记
-        // zoomEnable: false, // 地图是否可缩放，默认值为true。此属性可被setStatus/getStatus 方法控制
+        zoomEnable: false, // 地图是否可缩放，默认值为true。此属性可被setStatus/getStatus 方法控制
         keyboardEnable: false, // 地图是否可通过键盘控制
         dragEnable: true, // 地图是否可通过鼠标拖拽平移
         showIndoorMap: false // 关闭室内地图显示
@@ -96,7 +117,7 @@ export default {
       }).search(adcode, function(status, result) {
         // console.log(result.districtList[0], 'districtListdistrictList')
         const districtListFather = result.districtList[0]
-        if (_this.currentIndex === 2) { _this.getText(districtListFather) }
+        if (_this.currentIndex === 2) { _this.getText(districtListFather.center, districtListFather.name) }
         for (const i of districtListFather.districtList) {
           new AMap.DistrictSearch({
             subdistrict: 0, // 不返回下一级行政区
@@ -107,8 +128,8 @@ export default {
             _this.getPrismCity(result.districtList[0].boundaries, i)
             _this.getPrismWall(result.districtList[0].boundaries, i)
 
-            if (_this.currentIndex === 0) { _this.getPrims(i) }
-            if (_this.currentIndex !== 2) { _this.getText(i) }
+            if (_this.currentIndex === 0) { _this.getPrims(i.center, i.adcode) }
+            if (_this.currentIndex !== 2) { _this.getText(i.center, i.name) }
             if (_this.currentIndex === 1) {
               // 创建 infoWindow 实例
               _this.infoWindow = new AMap.InfoWindow({ offset: new AMap.Pixel(10, -50) })
@@ -157,15 +178,15 @@ export default {
       this.object3Dlayer.add(wall)
     },
     // 构建文本内容
-    getText(e, height) {
+    getText(e, name) {
       var _this = this
-      // 生成顶部的文字
+      // 生成顶部的数字
       _this.mapText = new AMap.Text({
         // text: result.districtList[0].name + '</br>(' + result.districtList[0].adcode + ')',
-        text: e.name,
+        text: name,
         verticalAlign: 'bottom',
-        position: e.name === '黄冈市' ? [e.center.R + 0.8, e.center.Q] : [e.center.R, e.center.Q],
-        height: height || 50000,
+        position: name === '黄冈市' ? [e.R + 0.8, e.Q] : [e.R, e.Q],
+        height: 60000,
         style: {
           'background-color': 'transparent',
           // '-webkit-text-stroke': 'red',
@@ -183,20 +204,20 @@ export default {
       // })
     },
     // 构建柱形
-    getPrims(e) {
+    getPrims(value, adcode) {
       // Prism方法生成立体的圆柱体
       var bounds = [
-        new AMap.LngLat(e.center.R, e.center.Q),
-        new AMap.LngLat(e.center.R + 0.1, e.center.Q),
-        new AMap.LngLat(e.center.R + 0.1, e.center.Q - 0.1),
-        new AMap.LngLat(e.center.R, e.center.Q - 0.1)
+        new AMap.LngLat(value.R, value.Q),
+        new AMap.LngLat(value.R + 0.1, value.Q),
+        new AMap.LngLat(value.R + 0.1, value.Q - 0.1),
+        new AMap.LngLat(value.R, value.Q - 0.1)
       ]
-      if (e.adcode === '421100') {
+      if (adcode === '421100') {
         bounds = [
-          new AMap.LngLat(e.center.R + 0.8, e.center.Q),
-          new AMap.LngLat(e.center.R + 0.9, e.center.Q),
-          new AMap.LngLat(e.center.R + 0.9, e.center.Q - 0.1),
-          new AMap.LngLat(e.center.R + 0.8, e.center.Q - 0.1)
+          new AMap.LngLat(value.R + 0.8, value.Q),
+          new AMap.LngLat(value.R + 0.9, value.Q),
+          new AMap.LngLat(value.R + 0.9, value.Q - 0.1),
+          new AMap.LngLat(value.R + 0.8, value.Q - 0.1)
         ]
       }
       var height = 700000
@@ -207,11 +228,6 @@ export default {
         color: color
       })
       this.object3Dlayer.add(prism)// 添加
-      const dataValue = {
-        center: e.center,
-        name: height
-      }
-      this.getText(dataValue, height + 10000)
     },
     // 构建点图
     getmarker(value, adcode, name) {
@@ -230,14 +246,8 @@ export default {
                           ${name}
                         </div>`
       marker.on('click', this.markerClick)
-      if (parseInt(marker.code) === 421081) { // 判断是不是石首市 如果是就打开窗口
-        const openData = {}
-        openData.target = marker
-        this.markerClick(openData)
-      }
     },
     markerClick(e) {
-      console.log(this.map)
       this.markHighLight(e.target.code)
       // 提示：这里必须要保存一下this,在访问extend外部的内容时候需要：如 that.testOut
       const that = this
@@ -259,8 +269,8 @@ export default {
       const component = new InfoContent().$mount()
       this.infoWindow.setContent(component.$el)
       // this.infoWindow.open(this.map, [117.00923, 36.675807]);
+      // this.infoWindow.setContent(e.target.content) // 打卡窗口
       this.infoWindow.open(this.map, e.target.getPosition())
-      // this.map.clearInfoWindow(); // 关闭窗体
     },
     // 散点高亮
     markHighLight(code) {
@@ -287,7 +297,7 @@ export default {
       var px = new AMap.Pixel(pixel.x, pixel.y)
       var obj = this.map.getObject3DByContainerPos(px, [this.object3Dlayer], false) || {}
       // 选中的 object3D 对象，这里为当前 Mesh
-      // console.log(obj.object)
+      console.log(obj.object)
       if (!obj.object.name) return
       // this.map.off('click', this.getMouse)
       var object = obj.object
