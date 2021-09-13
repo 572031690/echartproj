@@ -299,7 +299,8 @@ export default {
       var px = new AMap.Pixel(pixel.x, pixel.y)
       var obj = this.map.getObject3DByContainerPos(px, [this.object3Dlayer], false) || {}
       // 选中的 object3D 对象，这里为当前 Mesh
-      if (!Object.keys(obj).length || !obj.object.name) return
+      console.log(obj)
+      if (!obj.length) return
       // this.map.off('click', this.getMouse)
       var object = obj.object
       if (this.mapList.length < 3) {

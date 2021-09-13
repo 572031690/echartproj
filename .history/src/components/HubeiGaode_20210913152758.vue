@@ -238,7 +238,6 @@ export default {
     },
     markerClick(e) {
       this.markHighLight(e.target.code)
-      // ********方法一: 用vue extend挂载  但是得配置vueconfig文件********
       // 提示：这里必须要保存一下this,在访问extend外部的内容时候需要：如 that.testOut
       // const that = this
       // const InfoContent = Vue.extend({
@@ -261,7 +260,6 @@ export default {
       // const component = new InfoContent().$mount()
       // this.infoWindow.setContent(component.$el)
 
-      // ********方法二: 用window监听********
       const infoWindowContent = e.target.content
       this.infoWindow.setContent(infoWindowContent)
       this.infoWindow.open(this.map, e.target.getPosition())
@@ -299,7 +297,8 @@ export default {
       var px = new AMap.Pixel(pixel.x, pixel.y)
       var obj = this.map.getObject3DByContainerPos(px, [this.object3Dlayer], false) || {}
       // 选中的 object3D 对象，这里为当前 Mesh
-      if (!Object.keys(obj).length || !obj.object.name) return
+      // console.log(obj.object)
+      if (!obj.object.name) return
       // this.map.off('click', this.getMouse)
       var object = obj.object
       if (this.mapList.length < 3) {
