@@ -1,0 +1,107 @@
+<!DOCTYPE >
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Maptalks Quick Start</title>
+    <!-- or link to your downloaded files -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.css"
+    />
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.min.js"
+    ></script>
+  </head>
+  <body>
+    <div style="width:800px;height:600px;" id="map"></div>
+    <script type="text/javascript">
+      // create map in div 'map'
+      var map = new maptalks.Map("map", {
+        center: [-0.113049, 51.498568],
+        zoom: 14,
+        baseLayer: new maptalks.TileLayer("base", {
+          urlTemplate:
+            "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+          subdomains: ["a", "b", "c", "d"],
+          attribution:
+            '&copy; <a href="http://www.osm.org/copyright">OSM</a> contributors, ' +
+            '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+        }),
+        layers: [
+          new maptalks.VectorLayer('v')
+        ]
+      });
+      // map.setPitch('down');
+      // map.setBearing(-10);
+
+      // 设置地图点
+      addMarkers()
+      function addMarkers() {
+        var center = map.getCenter();
+        var m1 = new maptalks.Marker(center.add(-0.008, -0.008));
+        var m2 = new maptalks.Marker(center.add(0.008, -0.008));
+        var m3 = new maptalks.Marker(center.add(-0.008, 0.008));
+        var m4 = new maptalks.Marker(center.add(0.008, 0.008));
+        map.getLayer('v').addGeometry(m1, m2, m3, m4);
+      }
+
+      var pitch = 0, d = 'up', bearing = 0;
+      var paused = false;
+
+      function changeView() {
+        if (pitch > 50) {
+          d = 'down';
+        } else if (pitch < 0) {
+          d = 'up';
+        }
+        if (d === 'down') {
+          pitch--;
+        } else {
+          pitch++;
+        }
+        map.setPitch(pitch);
+        map.setBearing(bearing++);
+        if (!paused) {
+          requestAnimationFrame(changeView);
+        }
+      }
+
+      function reset() {
+        requestAnimationFrame(function () {
+          paused = true;
+          pitch = 0;
+          bearing = 0;
+          map.setPitch(0);
+          map.setBearing(0);
+        });
+      }
+
+      // 设置按钮
+      var toolbar = new maptalks.control.Toolbar({
+        items: [
+          {
+            'item' : 'pause',
+            'click' : function () {
+              paused = true;
+            }
+          },
+          {
+            'item' : 'start',
+            'click' : function () {
+              paused = false;
+              changeView();
+            }
+          },
+          {
+            'item' : 'reset',
+            'click' : function () {
+              reset();
+            }
+          }
+        ]
+      }).addTo(map);
+
+    </script>
+  </body>
+</html>

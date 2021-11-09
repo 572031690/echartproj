@@ -1,0 +1,170 @@
+<!DOCTYPE >
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Maptalks Quick Start</title>
+    <!-- or link to your downloaded files -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.css"
+    />
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.min.js"
+    ></script>
+  </head>
+  <body>
+    <div style="width:800px;height:600px;" id="map"></div>
+    <script type="text/javascript">
+      // create map in div 'map'
+      var map = new maptalks.Map("map", {
+        center: [-0.113049, 51.498568],
+        zoom: 14,
+        //allow map to drag pitching, true by default
+        dragPitch : true,
+        //allow map to drag rotating, true by default
+        dragRotate : true,
+        //enable map to drag pitching and rotating at the same time, true by default
+        dragRotatePitch : true,
+        zoomControl : true, // add zoom control
+        scaleControl : true, // add scale control
+        overviewControl : true, // add overview control
+        baseLayer: new maptalks.TileLayer("base", {
+          urlTemplate:
+            "http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+          subdomains: ["a", "b", "c", "d"],
+          attribution:
+            '&copy; <a href="http://www.osm.org/copyright">OSM</a> contributors, ' +
+            '&copy; <a href="https://carto.com/attributions">CARTO</a>',
+        }),
+        layers: [
+          new maptalks.VectorLayer('v')
+        ]
+      });
+      // 设置地图点
+      addMarkers()
+      function addMarkers() {
+        var center = map.getCenter();
+        var m1 = new maptalks.Marker(center.add(-0.008, -0.008));
+        var m2 = new maptalks.Marker(center.add(0.008, -0.008));
+        var m3 = new maptalks.Marker(center.add(-0.008, 0.008));
+        var m4 = new maptalks.Marker(center.add(0.008, 0.008));
+        map.getLayer('v').addGeometry(m1, m2, m3, m4);
+      }
+
+      var pitch = 0, d = 'up', bearing = 0;
+      var paused = false;
+
+      function changeView() {
+        if (pitch > 50) {
+          d = 'down';
+        } else if (pitch < 0) {
+          d = 'up';
+        }
+        if (d === 'down') {
+          pitch--;
+        } else {
+          pitch++;
+        }
+        map.setPitch(pitch); // 倾斜角度
+        map.setBearing(bearing++); // 旋转角度
+        if (!paused) {
+          // 浏览器在下次重绘之前调用指定的回调函数更新动画。
+          requestAnimationFrame(changeView);
+        }
+      }
+
+      function reset() {
+        requestAnimationFrame(function () {
+          paused = true;
+          pitch = 0;
+          bearing = 0;
+          map.setPitch(0);
+          map.setBearing(0);
+        });
+      }
+
+      // 设置按钮
+      var toolbar = new maptalks.control.Toolbar({
+        items: [
+          {
+            'item' : 'pause',
+            'click' : function () {
+              paused = true;
+            }
+          },
+          {
+            'item' : 'start',
+            'click' : function () {
+              paused = false;
+              changeView();
+            }
+          },
+          {
+            'item' : 'reset',
+            'click' : function () {
+              reset();
+            }
+          },
+        ]
+      }).addTo(map);
+      var toolbars = new maptalks.control.Toolbar({
+        items: [
+          {
+            item: '↑',
+            click: up
+          },
+          {
+            item: '↓',
+            click: down
+          },
+          {
+            item: '←',
+            click: left
+          },
+          {
+            item: '→',
+            click: right
+          },
+          {
+            item: 'pan to',
+            click: toCoordinate
+          }
+        ]
+      }).addTo(map);
+
+      function up() {
+        map.panBy([0, -200]); // 设置地图中心点的偏移位置
+      }
+
+      function down() {
+        map.panBy([0, 200]);
+      }
+
+      function left() {
+        map.panBy([-200, 0]);
+      }
+
+      function right() {
+        map.panBy([200, 0]);
+      }
+
+      function toCoordinate() {
+        // 设置标记的样式
+        var symbol = {
+          markerType : 'x',
+          markerLineColor : '#f00',
+          markerLineWidth : 4,
+          markerWidth : 20,
+          markerHeight : 20
+        };
+        var coordinate = map.getCenter().add(0.008, 0.008);
+        map.getLayer('v')
+          .clear() // 清空标记
+          .addGeometry(new maptalks.Marker(coordinate, { 'symbol' : symbol }));
+        map.panTo(coordinate);
+      }
+
+    </script>
+  </body>
+</html>
