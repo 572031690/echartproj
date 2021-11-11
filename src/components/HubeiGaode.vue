@@ -1,18 +1,28 @@
 <template>
   <div id="gaodeMap">
     <div id="container"></div>
-    <div  class="topTips">
-      <div v-for="(item, index) in mapList" :key="index"   @click="goBackCIty(item,index)" :class="['topItem',{'current':currentIndex === index }]">{{item.name}}</div>
+    <div class="topTips">
+      <div
+        v-for="(item, index) in mapList"
+        :key="index"
+        @click="goBackCIty(item, index)"
+        :class="['topItem', { current: currentIndex === index }]"
+      >
+        {{ item.name }}
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import Vue from 'vue'
 export default {
   data() {
     return {
-      hubeiCode: { name: '湖北省', code: '420000', center: { R: 112.724882, Q: 31.061028 } },
+      hubeiCode: {
+        name: '湖北省',
+        code: '420000',
+        center: { R: 112.724882, Q: 31.061028 }
+      },
       currentIndex: 0,
       map: '',
       object3Dlayer: '',
@@ -45,7 +55,8 @@ export default {
     // onLoad地图
     getMap() {
       var _this = this
-      window.onLoad = function() { // 必须要放在window.onLoad内初始化
+      window.onLoad = function () {
+        // 必须要放在window.onLoad内初始化
         _this.initMap()
       }
     },
@@ -70,7 +81,11 @@ export default {
       this.map.setLimitBounds(bounds)
       // 设置光照
       this.map.AmbientLight = new AMap.Lights.AmbientLight([1, 1, 1], 0.5)
-      this.map.DirectionLight = new AMap.Lights.DirectionLight([0, 0, 1], [1, 1, 1], 1)
+      this.map.DirectionLight = new AMap.Lights.DirectionLight(
+        [0, 0, 1],
+        [1, 1, 1],
+        1
+      )
 
       this.object3Dlayer = new AMap.Object3DLayer()
       this.map.add(this.object3Dlayer)
@@ -93,25 +108,32 @@ export default {
         subdistrict: 1, // 返回下一级行政区
         extensions: 'all', // 返回行政区边界坐标组等具体信息
         level: 'city' // 查询行政级别为 市
-      }).search(adcode, function(status, result) {
+      }).search(adcode, function (status, result) {
         // console.log(result.districtList[0], 'districtListdistrictList')
         const districtListFather = result.districtList[0]
-        if (_this.currentIndex === 2) { _this.getText(districtListFather) }
+        if (_this.currentIndex === 2) {
+          _this.getText(districtListFather)
+        }
         for (const i of districtListFather.districtList) {
           new AMap.DistrictSearch({
             subdistrict: 0, // 不返回下一级行政区
             extensions: 'all', // 返回行政区边界坐标组等具体信息
             level: 'city' // 查询行政级别为 市
-
-          }).search(i.adcode, function(status, result) {
+          }).search(i.adcode, function (status, result) {
             _this.getPrismCity(result.districtList[0].boundaries, i)
             _this.getPrismWall(result.districtList[0].boundaries, i)
 
-            if (_this.currentIndex === 0) { _this.getPrims(i) }
-            if (_this.currentIndex !== 2) { _this.getText(i) }
+            if (_this.currentIndex === 0) {
+              _this.getPrims(i)
+            }
+            if (_this.currentIndex !== 2) {
+              _this.getText(i)
+            }
             if (_this.currentIndex === 1) {
               // 创建 infoWindow 实例
-              _this.infoWindow = new AMap.InfoWindow({ offset: new AMap.Pixel(10, -50) })
+              _this.infoWindow = new AMap.InfoWindow({
+                offset: new AMap.Pixel(10, -50)
+              })
               // 鼠标点击marker弹出自定义的信息窗体
               _this.getmarker(i.center, i.adcode, i.name)
             }
@@ -146,7 +168,7 @@ export default {
       // *******立体墙的绘制******
       const bounds = e
       const height = 70000
-      const color = '#0088ffff'// rgba
+      const color = '#0088ffff' // rgba
       var wall = new AMap.Object3D.Wall({
         path: bounds,
         height: height,
@@ -164,7 +186,10 @@ export default {
         // text: result.districtList[0].name + '</br>(' + result.districtList[0].adcode + ')',
         text: e.name,
         verticalAlign: 'bottom',
-        position: e.name === '黄冈市' ? [e.center.R + 0.8, e.center.Q] : [e.center.R, e.center.Q],
+        position:
+          e.name === '黄冈市'
+            ? [e.center.R + 0.8, e.center.Q]
+            : [e.center.R, e.center.Q],
         height: height || 50000,
         style: {
           'background-color': 'transparent',
@@ -200,13 +225,13 @@ export default {
         ]
       }
       var height = 700000
-      var color = '#eeeeee60'// rgba  #0088ff60
+      var color = '#eeeeee60' // rgba  #0088ff60
       var prism = new AMap.Object3D.Prism({
         path: bounds,
         height: height,
         color: color
       })
-      this.object3Dlayer.add(prism)// 添加
+      this.object3Dlayer.add(prism) // 添加
       const dataValue = {
         center: e.center,
         name: height
@@ -230,7 +255,8 @@ export default {
                           ${name}
                         </div>`
       marker.on('click', this.markerClick)
-      if (parseInt(marker.code) === 421081) { // 判断是不是石首市 如果是就打开窗口
+      if (parseInt(marker.code) === 421081) {
+        // 判断是不是石首市 如果是就打开窗口
         const openData = {}
         openData.target = marker
         this.markerClick(openData)
@@ -276,7 +302,7 @@ export default {
     },
     // 散点高亮
     markHighLight(code) {
-      this.markerList.forEach(marker => {
+      this.markerList.forEach((marker) => {
         if (marker.code === code) {
           marker.setIcon(require('../assets/images/marker2.svg'))
           marker.setOffset(new AMap.Pixel(0, -50))
@@ -297,14 +323,20 @@ export default {
       if (this.currentIndex === 2) return
       var pixel = ev.pixel
       var px = new AMap.Pixel(pixel.x, pixel.y)
-      var obj = this.map.getObject3DByContainerPos(px, [this.object3Dlayer], false) || {}
+      var obj =
+        this.map.getObject3DByContainerPos(px, [this.object3Dlayer], false) ||
+        {}
       // 选中的 object3D 对象，这里为当前 Mesh
       if (!Object.keys(obj).length || !obj.object.name) return
       // this.map.off('click', this.getMouse)
       var object = obj.object
       if (this.mapList.length < 3) {
         this.currentIndex++
-        this.mapList.push({ name: object.name, code: object.adcodeYS, center: object.center })
+        this.mapList.push({
+          name: object.name,
+          code: object.adcodeYS,
+          center: object.center
+        })
       }
       const centerData = obj.object.center || 0
       if (centerData) this.map.setCenter([centerData.R, centerData.Q]) // 设置地图中心点
@@ -325,59 +357,56 @@ export default {
       this.map.setCenter([e.center.R, e.center.Q]) // 设置地图中心点
       this.getCity(e.code)
     }
-
   }
 }
 </script>
 
 <style>
-  #gaodeMap {
-    width: 100%;
-      height: 100vh;
-  }
-  #container {
-    width: 100%;
-    height: 100%;
-  }
-  .topTips {
-    position: absolute;
-    right:15% ;
-    top: 15%;
-    width: 15%;
-    background-color: rgb(48, 133, 230);
-  }
-  .topItem {
-    width: 100%;
-    height: 80px;
-    text-align: center;
-    line-height: 80px;
-    background-color: rgb(183, 167, 196);
-  }
-  .current {
-    background-color: rgb(68, 57, 77);
+#gaodeMap {
+  width: 100%;
+  height: 100vh;
+}
+#container {
+  width: 100%;
+  height: 100%;
+}
+.topTips {
+  position: absolute;
+  right: 15%;
+  top: 15%;
+  width: 15%;
+  background-color: rgb(48, 133, 230);
+}
+.topItem {
+  width: 100%;
+  height: 80px;
+  text-align: center;
+  line-height: 80px;
+  background-color: rgb(183, 167, 196);
+}
+.current {
+  background-color: rgb(68, 57, 77);
+}
 
-  }
-
-   .amap-info-content {
-     padding: 0px;
-     width: 218.5px;
-     height: 46.5px;
-     border-radius: 2px;
-     background-color: rgba(43, 78, 120, 1);
-     box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.5);
-     border: 1px solid rgba(29, 32, 49, 1);
-  }
-  .amap-info-sharp {
-    border-top: 8px solid rgba(43, 78, 120, 1) !important;
-  }
-  .center {
-    width: 140px;
-    height: 46.5px;
-    line-height: 46.5px;
-    color: rgba(255, 255, 255, 100);
-    padding-left: 25px;
-    font-size: 14px;
-    cursor: pointer;
-
-  }
+.amap-info-content {
+  padding: 0px;
+  width: 218.5px;
+  height: 46.5px;
+  border-radius: 2px;
+  background-color: rgba(43, 78, 120, 1);
+  box-shadow: 0px 2px 8px 0px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(29, 32, 49, 1);
+}
+.amap-info-sharp {
+  border-top: 8px solid rgba(43, 78, 120, 1) !important;
+}
+.center {
+  width: 140px;
+  height: 46.5px;
+  line-height: 46.5px;
+  color: rgba(255, 255, 255, 100);
+  padding-left: 25px;
+  font-size: 14px;
+  cursor: pointer;
+}
 </style>
